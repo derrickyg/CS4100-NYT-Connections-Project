@@ -65,7 +65,7 @@ class SimulatedAnnealingSolver:
             T = T * config.SA_COOLING_RATE
             
             # Stop if temperature is very low
-            if T < 0.01:
+            if T < config.SA_MIN_TEMP:
                 break
         
         return best

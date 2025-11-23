@@ -2,9 +2,9 @@
 Build co-occurrence statistics from historical NYT Connections data.
 """
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import List, Optional
 import math
-from data.load_dataset import load_historical_data, Puzzle
+from data.load_dataset import load_historical_data
 
 # Global cache for co-occurrence stats (loaded once)
 _cooccurrence_cache = None

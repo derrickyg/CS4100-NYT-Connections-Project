@@ -113,9 +113,9 @@ class WordEmbeddings:
         if emb1 is None or emb2 is None:
             return 0.0
         
-        # Normalize vectors
-        emb1_norm = emb1 / (np.linalg.norm(emb1) + 1e-8)
-        emb2_norm = emb2 / (np.linalg.norm(emb2) + 1e-8)
+        # Normalize vectors (use max to ensure minimum threshold for division)
+        emb1_norm = emb1 / max(np.linalg.norm(emb1), 1e-8)
+        emb2_norm = emb2 / max(np.linalg.norm(emb2), 1e-8)
         
         # Compute cosine similarity
         similarity = np.dot(emb1_norm, emb2_norm)

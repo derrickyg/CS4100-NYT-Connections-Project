@@ -7,6 +7,7 @@ from similarity.combined_similarity import CombinedSimilarity
 from evaluation.game_simulator import GameSimulator, GameFeedback
 from solvers.hill_climbing import HillClimbingSolver
 import random
+import config
 
 
 class IterativeSolver:
@@ -75,7 +76,6 @@ class IterativeSolver:
             if group is None:
                 remaining_list = list(remaining)
                 if len(remaining_list) >= 4:
-                    import random
                     # Try random combinations until we find one we haven't tried
                     for _ in range(50):
                         candidate = random.sample(remaining_list, 4)
@@ -187,7 +187,6 @@ class IterativeSolver:
         # If all strategies failed, use random untried combinations (fast fallback)
         if len(remaining_words) >= 4:
             remaining_list = list(remaining_words)
-            import random
             for _ in range(20):  # Try up to 20 random combinations
                 candidate = random.sample(remaining_list, 4)
                 candidate_tuple = tuple(sorted(w.upper() for w in candidate))
@@ -228,11 +227,10 @@ class IterativeSolver:
         else:
             # We have 4 words available, but only 3 were correct
             # Try all combinations of 3 from the previous group
-            from itertools import combinations as combos
             best_group = None
             best_score = float('-inf')
             
-            for three_words in combos(available_from_prev, 3):
+            for three_words in combinations(available_from_prev, 3):
                 used_words = set(w.upper() for w in three_words)
                 candidates = [w for w in remaining_words if w.upper() not in used_words]
                 
@@ -256,7 +254,7 @@ class IterativeSolver:
                     pair_bonus = 0.0
                     for word in three_words:
                         pair = tuple(sorted([candidate.upper(), word.upper()]))
-                        if pair in self.known_pairs or (word.upper(), candidate.upper()) in self.known_pairs:
+                        if pair in self.known_pairs:
                             pair_bonus += 1.0
                     
                     scores.append((candidate, avg_sim + pair_bonus))
@@ -302,7 +300,7 @@ class IterativeSolver:
             pair_bonus = 0.0
             for word in available_from_prev:
                 pair = tuple(sorted([candidate.upper(), word.upper()]))
-                if pair in self.known_pairs or (word.upper(), candidate.upper()) in self.known_pairs:
+                if pair in self.known_pairs:
                     pair_bonus += 1.0
             
             scores.append((candidate, avg_sim + pair_bonus))
@@ -343,8 +341,7 @@ class IterativeSolver:
             return None
         
         # Try all pairs from the previous group
-        from itertools import combinations as combos
-        for pair in combos(available_from_prev, 2):
+        for pair in combinations(available_from_prev, 2):
             used_words = set(w.upper() for w in pair)
             candidates = [w for w in remaining_words if w.upper() not in used_words]
             
@@ -355,7 +352,7 @@ class IterativeSolver:
             best_group = None
             best_score = float('-inf')
             
-            for two_more in combos(candidates, 2):
+            for two_more in combinations(candidates, 2):
                 test_group = list(pair) + list(two_more)
                 test_tuple = tuple(sorted(w.upper() for w in test_group))
                 
@@ -440,7 +437,7 @@ class IterativeSolver:
             return remaining_words
         
         # Try all combinations (limit to avoid timeout)
-        max_combinations = 200  # Increased to explore more
+        max_combinations = config.ITERATIVE_MAX_COMBINATIONS
         all_combos = list(combinations(remaining_words, 4))
         
         if len(all_combos) > max_combinations:
@@ -461,7 +458,6 @@ class IterativeSolver:
                     combos_without_pairs.append(combo)
             
             # Sample more from combos with known pairs
-            import random
             if len(combos_with_pairs) > max_combinations // 2:
                 all_combos = random.sample(combos_with_pairs, max_combinations // 2)
                 all_combos.extend(random.sample(combos_without_pairs, max_combinations // 2))
@@ -475,7 +471,7 @@ class IterativeSolver:
         
         # Limit how many combinations we check to avoid slowdown
         checked = 0
-        max_to_check = min(len(all_combos), 100)  # Limit to 100 combinations max
+        max_to_check = min(len(all_combos), config.ITERATIVE_MAX_TO_CHECK)
         
         for combo in all_combos:
             if checked >= max_to_check:
@@ -507,7 +503,7 @@ class IterativeSolver:
             # Bonus for known pairs
             for w1, w2 in self.known_pairs:
                 if w1.upper() in combo_set and w2.upper() in combo_set:
-                    score += 2.0  # Increased bonus
+                    score += config.ITERATIVE_KNOWN_PAIR_BONUS
             
             if score > best_score:
                 best_score = score
@@ -518,7 +514,6 @@ class IterativeSolver:
             return best_group
         
         # If no good group found, return a random untried combination
-        import random
         remaining_list = list(remaining_words)
         for _ in range(20):  # Try up to 20 random combinations
             candidate = random.sample(remaining_list, 4)
@@ -577,15 +572,14 @@ class IterativeSolver:
                 if feedback.correct_words == 3:
                     # Find the 3 words that form the most cohesive group
                     # Try all combinations of 3 and find the one with highest average similarity
-                    from itertools import combinations as combos
                     best_trio = None
                     best_trio_score = float('-inf')
                     
-                    for trio in combos(group_upper, 3):
+                    for trio in combinations(group_upper, 3):
                         # Compute average similarity within trio
                         trio_sim = sum(
                             self.similarity_fn.similarity(w1, w2)
-                            for w1, w2 in combos(trio, 2)
+                            for w1, w2 in combinations(trio, 2)
                         ) / 3.0  # C(3,2) = 3 pairs
                         
                         if trio_sim > best_trio_score:

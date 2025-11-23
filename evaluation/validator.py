@@ -4,7 +4,6 @@ Solution validation and objective score computation.
 from typing import Dict, List
 from similarity.combined_similarity import CombinedSimilarity
 from solvers.hill_climbing import HillClimbingSolver
-import config
 
 
 def validate_solution(groups: Dict[int, List[str]]) -> bool:

@@ -78,15 +78,18 @@ def compute_word_accuracy(predicted_groups: Dict[int, List[str]],
     correct = 0
     total = 0
     
+    # Track which predicted sets were matched (use frozenset for hashability)
+    matched_pred_sets = {frozenset(pred_set) for pred_set, _ in matches}
+    
     for pred_set, truth_set in matches:
         for word in pred_set:
             total += 1
             if word in truth_set:
                 correct += 1
     
-    # Handle unmatched predicted groups
+    # Handle unmatched predicted groups (add their words to total, but none are correct)
     for pred_idx, pred_set in pred_sets_with_idx:
-        if pred_set not in [p for p, t in matches]:
+        if frozenset(pred_set) not in matched_pred_sets:
             total += len(pred_set)
     
     return correct / total if total > 0 else 0.0

@@ -191,7 +191,7 @@ class CSPSolver:
         threshold = config.CONSISTENCY_THRESHOLD
         if len(groups[group_id]) >= 3:
             # If group is almost full, lower threshold to allow completion
-            threshold = threshold * 0.7
+            threshold = threshold * config.ALMOST_FULL_THRESHOLD_MULTIPLIER
         
         return avg_sim > threshold
     

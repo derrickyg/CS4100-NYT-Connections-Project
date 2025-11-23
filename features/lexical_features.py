@@ -1,9 +1,7 @@
 """
 Extract lexical features: edit distance, POS tags, prefixes, suffixes, etc.
 """
-from typing import Tuple
 import nltk
-from nltk.corpus import wordnet
 
 # Download required NLTK data
 try:
@@ -99,7 +97,7 @@ def same_pos_tag(word1: str, word2: str) -> bool:
         pos1 = nltk.pos_tag([word1])[0][1]
         pos2 = nltk.pos_tag([word2])[0][1]
         return pos1 == pos2
-    except:
+    except Exception:
         return False
 
 

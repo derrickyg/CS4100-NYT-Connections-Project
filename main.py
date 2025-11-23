@@ -233,10 +233,16 @@ def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistake
             for submission in result['submissions']:
                 if submission['feedback'].correct_words > 0:
                     # Create a temporary solution with this submission as one group
+                    # NOTE: This creates groups with only 1 word each for remaining words,
+                    # which violates the game constraint (groups must have 4 words).
+                    # This is a workaround ONLY for partial accuracy calculation purposes.
+                    # The accuracy functions can handle this structure, but this should
+                    # NOT be used for actual game validation or solution validation.
                     temp_solution = {1: submission['group']}
                     remaining = set(w.upper() for w in puzzle.words) - set(w.upper() for w in submission['group'])
                     
-                    # Distribute remaining words into dummy groups
+                    # Distribute remaining words into dummy groups (1 word each)
+                    # This is only for accuracy calculation, not a valid game solution
                     group_id = 2
                     for word in remaining:
                         temp_solution[group_id] = [word]

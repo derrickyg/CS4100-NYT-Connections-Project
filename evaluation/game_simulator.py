@@ -1,7 +1,7 @@
 """
 Game simulator for NYT Connections that provides feedback like the real game.
 """
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Optional
 from data.load_dataset import Puzzle
 
 
@@ -86,7 +86,6 @@ class GameSimulator:
         
         # Not correct - count how many words match each unsolved group
         max_correct = 0
-        best_match_group = None
         
         for group_id, truth_set in self.truth_groups.items():
             if group_id in self.solved_groups:
@@ -95,7 +94,6 @@ class GameSimulator:
             correct_count = len(words_set & truth_set)
             if correct_count > max_correct:
                 max_correct = correct_count
-                best_match_group = group_id
         
         # Count mistake
         self.mistakes += 1
