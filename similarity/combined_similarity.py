@@ -9,37 +9,21 @@ from features.pattern_matching import pattern_similarity
 import config
 
 
-# Global cache for CombinedSimilarity instance (optional - can be reused)
-_combined_similarity_cache = None
-
-
 class CombinedSimilarity:
     """Combines multiple similarity metrics."""
     
-    def __init__(self, use_cache: bool = False, exclude_puzzle_indices: Optional[List[int]] = None):
+    def __init__(self, exclude_puzzle_indices: Optional[List[int]] = None):
         """
         Initialize similarity components.
+        Always loads models fresh to prevent data leakage.
         
         Args:
-            use_cache: If True and a cached instance exists, reuse it (default: False for safety)
             exclude_puzzle_indices: Optional list of puzzle indices to exclude from co-occurrence stats
                                    (prevents data leakage when testing on specific puzzles)
         """
-        global _combined_similarity_cache
-        
-        if use_cache and _combined_similarity_cache is not None and exclude_puzzle_indices is None:
-            # Reuse cached instance (only if no exclusions)
-            cached = _combined_similarity_cache
-            self.word_embeddings = cached.word_embeddings
-            self.cooccurrence_stats = cached.cooccurrence_stats
-        else:
-            # Create new instance
-            self.word_embeddings = WordEmbeddings(config.EMBEDDING_MODEL)
-            self.cooccurrence_stats = CooccurrenceStats(exclude_indices=exclude_puzzle_indices)
-            
-            # Cache for future use (if requested and no exclusions)
-            if use_cache and exclude_puzzle_indices is None:
-                _combined_similarity_cache = self
+        # Always create new instance (loads models fresh)
+        self.word_embeddings = WordEmbeddings(config.EMBEDDING_MODEL)
+        self.cooccurrence_stats = CooccurrenceStats(exclude_indices=exclude_puzzle_indices)
     
     def similarity(self, word1: str, word2: str) -> float:
         """

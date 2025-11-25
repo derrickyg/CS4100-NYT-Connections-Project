@@ -5,7 +5,6 @@ from typing import List, Dict, Optional, Set
 from itertools import combinations
 from similarity.combined_similarity import CombinedSimilarity
 from evaluation.game_simulator import GameSimulator, GameFeedback
-from solvers.hill_climbing import HillClimbingSolver
 import random
 import config
 
@@ -25,8 +24,6 @@ class IterativeSolver:
         self.known_pairs: Set[tuple] = set()
         # Track which words we know don't belong together
         self.forbidden_pairs: Set[tuple] = set()
-        # Use hill climbing solver for initial guesses
-        self.hc_solver = HillClimbingSolver(similarity_function)
         # Track submission history for learning
         self.submission_history: List[Dict] = []
         # Track groups we've already tried (to avoid repeats)
