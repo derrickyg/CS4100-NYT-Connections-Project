@@ -34,8 +34,8 @@ ML_CLASSIFIER = "logistic_regression"
 ML_RANDOM_STATE = 42
 
 # Word embeddings
-#EMBEDDING_MODEL = "glove-wiki-gigaword-300"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "glove-wiki-gigaword-300"
+#EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Iterative solver parameters
 ITERATIVE_MAX_COMBINATIONS = 200  # Maximum number of word combinations to consider when finding most similar group

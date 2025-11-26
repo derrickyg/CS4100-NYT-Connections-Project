@@ -8,6 +8,7 @@ from data.load_dataset import load_test_puzzle, load_historical_data, Puzzle
 from data.sample_puzzles import get_sample_puzzles, get_sample_puzzle_by_index
 from solvers.csp_solver import CSPSolver
 from solvers.hill_climbing import HillClimbingSolver
+from solvers.k_means import KMeansSolver
 from solvers.simulated_annealing import SimulatedAnnealingSolver
 from similarity.combined_similarity import CombinedSimilarity
 from evaluation.validator import validate_solution, compute_objective_score
@@ -50,17 +51,30 @@ def solve_puzzle(words: List[str], use_ensemble: bool = True) -> Dict[int, List[
             print(f"  CSP solver error: {e}")
         
         # Hill Climbing
-        print("Running Hill Climbing...")
+        # print("Running Hill Climbing...")
+        # try:
+        #     hc_solver = HillClimbingSolver(similarity_fn)
+        #     hc_solution = hc_solver.solve(words)
+        #     if validate_solution(hc_solution):
+        #         solutions.append(('HillClimbing', hc_solution))
+        #         print("  Hill Climbing found constraint-satisfying grouping (4 groups of 4 words)")
+        #     else:
+        #         print("  Hill Climbing did not find valid grouping (should not happen)")
+        # except Exception as e:
+        #     print(f"  Hill Climbing error: {e}")
+
+        # K-Means
+        print("Running K-Means...")
         try:
-            hc_solver = HillClimbingSolver(similarity_fn)
-            hc_solution = hc_solver.solve(words)
-            if validate_solution(hc_solution):
-                solutions.append(('HillClimbing', hc_solution))
-                print("  Hill Climbing found constraint-satisfying grouping (4 groups of 4 words)")
+            kmeans_solver = KMeansSolver(similarity_fn)
+            kmeans_solution = kmeans_solver.solve(words)
+            if validate_solution(kmeans_solution):
+                solutions.append(('KMeans', kmeans_solution))
+                print("  K-Means found constraint-satisfying grouping (4 groups of 4 words)")
             else:
-                print("  Hill Climbing did not find valid grouping (should not happen)")
+                print("  K-Means did not find valid grouping (should not happen)")
         except Exception as e:
-            print(f"  Hill Climbing error: {e}")
+            print(f"  K-Means error: {e}")
         
         # Simulated Annealing
         print("Running Simulated Annealing...")
@@ -77,6 +91,11 @@ def solve_puzzle(words: List[str], use_ensemble: bool = True) -> Dict[int, List[
         
         # Select best solution based on objective score
         if solutions:
+            # print all scores
+            for name, sol in solutions:
+                score = compute_objective_score(sol, similarity_fn)
+                print(f"    {name} objective score: {score:.4f}")
+
             best_solution = max(solutions, 
                               key=lambda x: compute_objective_score(x[1], similarity_fn))
             print(f"\nEnsemble Result: Selected best grouping from {best_solution[0]}")
@@ -84,21 +103,22 @@ def solve_puzzle(words: List[str], use_ensemble: bool = True) -> Dict[int, List[
             print("  Note: This satisfies structural constraints (4 groups of 4) but may not be correct.")
             return best_solution[1]
         else:
-            print("No valid groupings found, using Hill Climbing as fallback")
-            hc_solver = HillClimbingSolver(similarity_fn)
+            #print("No valid groupings found, using Hill Climbing as fallback")
+            print("No valid groupings found, using K-Means as fallback")
+            hc_solver = KMeansSolver(similarity_fn)
             return hc_solver.solve(words)
     
-    else:
-        # Use single solver (CSP by default)
-        solver = CSPSolver(similarity_fn)
-        solution = solver.solve(words)
-        if solution:
-            return solution
-        else:
-            # Fallback to hill climbing
-            print("CSP failed, falling back to Hill Climbing...")
-            hc_solver = HillClimbingSolver(similarity_fn)
-            return hc_solver.solve(words)
+    # else:
+    #     # Use single solver (CSP by default)
+    #     solver = CSPSolver(similarity_fn)
+    #     solution = solver.solve(words)
+    #     if solution:
+    #         return solution
+    #     else:
+    #         # Fallback to hill climbing
+    #         print("CSP failed, falling back to Hill Climbing...")
+    #         hc_solver = HillClimbingSolver(similarity_fn)
+    #         return hc_solver.solve(words)
 
 
 def evaluate_on_test_set(test_puzzles: List[Puzzle]):
@@ -449,13 +469,17 @@ def main():
             print(f"Difficulty: {puzzle.difficulty}")
         print(f"\nWords: {', '.join(puzzle.words)}")
         
+        # Initialize similarity function for category inference
+        similarity_fn = CombinedSimilarity()
+        
         # Solve
         solution = solve_puzzle(puzzle.words, use_ensemble=not args.no_ensemble)
         
-        # Display solution
+        # Display solution with inferred categories
         print("\n=== Solution ===")
         for group_id in sorted(solution.keys()):
-            print(f"Group {group_id}: {', '.join(solution[group_id])}")
+            group_words = solution[group_id]
+            print(f"Group {group_id}: {', '.join(group_words)}")
         
         # If ground truth available, compute accuracy
         if puzzle.groups:
