@@ -4,7 +4,7 @@ Main solver orchestration for game mode.
 import argparse
 import time
 from typing import List, Dict, Optional
-from data.load_dataset import load_test_puzzle, load_historical_data, Puzzle
+from data.load_dataset import load_historical_data, Puzzle
 from similarity.combined_similarity import CombinedSimilarity
 from evaluation.metrics import compute_accuracy, compute_word_accuracy
 from evaluation.game_simulator import GameSimulator
@@ -47,7 +47,7 @@ def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistake
     solver_init_start = time.time()
     if similarity_fn is None:
         # Always load models fresh to prevent data leakage
-        similarity_fn = CombinedSimilarity(exclude_puzzle_indices=None)
+        similarity_fn = CombinedSimilarity()
     solver = IterativeSolver(similarity_fn)
     solver_init_time = time.time() - solver_init_start
     
@@ -193,25 +193,19 @@ def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistake
     return result
 
 
-def evaluate_game_mode(test_puzzles: List[Puzzle], max_mistakes: int = 4, exclude_indices: Optional[List[int]] = None):
+def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4):
     """
-    Evaluate solver in game mode on multiple puzzles.
+    Solve a list of puzzles
     
     Args:
-        test_puzzles: List of puzzles to test
-        max_mistakes: Maximum number of mistakes allowed per puzzle
-        exclude_indices: Optional list of puzzle indices to exclude from co-occurrence stats
-                        (prevents data leakage)
+        test_puzzles: List of puzzles to solve
+        max_mistakes: Maximum number of mistakes allowed per puzzle (default: 4)
     """
     results = []
     
-    # Initialize solver once for all puzzles (saves time)
-    # Always load models fresh to prevent data leakage
-    print("Initializing solver (this may take 30-60 seconds on first run due to model loading)...")
-    solver_init_start = time.time()
-    similarity_fn = CombinedSimilarity(exclude_puzzle_indices=exclude_indices)
-    solver_init_time = time.time() - solver_init_start
-    print(f"Solver initialized in {solver_init_time:.2f}s.\n")
+    # initialize the similarity function (solver)
+    similarity_fn = CombinedSimilarity()
+
     
     for i, puzzle in enumerate(test_puzzles):
         print(f"\n{'='*70}")
@@ -258,7 +252,7 @@ def evaluate_game_mode(test_puzzles: List[Puzzle], max_mistakes: int = 4, exclud
 
 
 def main():
-    """Main entry point."""
+    """let the agent play the game!"""
     parser = argparse.ArgumentParser(description="NYT Connections Solver Agent - Game Mode")
     parser.add_argument(
         "--num-puzzles",
@@ -275,26 +269,12 @@ def main():
     
     args = parser.parse_args()
     
-    max_mistakes = args.mistakes_allowed
+    # Load puzzles
+    all_puzzles = load_historical_data()
+    test_puzzles = all_puzzles[:args.num_puzzles]
     
-    if args.num_puzzles > 1:
-        # Evaluate on multiple puzzles
-        all_puzzles = load_historical_data()
-        test_puzzles = all_puzzles[:args.num_puzzles]
-        # Exclude test puzzle indices from co-occurrence stats to prevent data leakage
-        test_indices = list(range(args.num_puzzles))
-        print(f"⚠️  Note: Excluding puzzles {test_indices} from co-occurrence stats to prevent data leakage")
-        evaluate_game_mode(test_puzzles, max_mistakes=max_mistakes, exclude_indices=test_indices)
-    else:
-        # Single puzzle
-        puzzle = load_test_puzzle(0)
-        
-        if not puzzle.groups:
-            print("Error: Puzzle must have ground truth groups for game simulation.")
-            return
-        
-        # Always load models fresh to prevent data leakage
-        solve_with_game_simulation(puzzle, max_mistakes=max_mistakes, similarity_fn=None)
+    # solve the test puzzles
+    solve_puzzles(test_puzzles, max_mistakes=args.mistakes_allowed)
 
 
 if __name__ == "__main__":

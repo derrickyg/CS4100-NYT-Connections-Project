@@ -5,10 +5,9 @@ Configuration parameters for NYT Connections Solver.
 # play with these to see if better outcome can be achieved
 
 # Similarity weights
-EMBEDDING_WEIGHT = 0.4
-COOCCURRENCE_WEIGHT = 0.3
-LEXICAL_WEIGHT = 0.2
-PATTERN_WEIGHT = 0.1
+EMBEDDING_WEIGHT = 0.7  # Semantic meaning from pre-trained embeddings
+LEXICAL_WEIGHT = 0.2    # Edit distance, prefixes, suffixes
+PATTERN_WEIGHT = 0.1    # Pattern matching
 
 # CSP parameters
 CONSISTENCY_THRESHOLD = 0.5  # minimum avg similarity for consistency

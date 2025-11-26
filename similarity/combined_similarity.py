@@ -1,10 +1,8 @@
 """
 Combine multiple similarity metrics with learned weights.
 """
-from typing import Optional, List
 from features.word_embeddings import WordEmbeddings
 from features.lexical_features import lexical_similarity
-from features.cooccurrence import CooccurrenceStats
 from features.pattern_matching import pattern_similarity
 import config
 
@@ -12,18 +10,13 @@ import config
 class CombinedSimilarity:
     """Combines multiple similarity metrics."""
     
-    def __init__(self, exclude_puzzle_indices: Optional[List[int]] = None):
+    def __init__(self):
         """
         Initialize similarity components.
         Always loads models fresh to prevent data leakage.
-        
-        Args:
-            exclude_puzzle_indices: Optional list of puzzle indices to exclude from co-occurrence stats
-                                   (prevents data leakage when testing on specific puzzles)
         """
         # Always create new instance (loads models fresh)
         self.word_embeddings = WordEmbeddings(config.EMBEDDING_MODEL)
-        self.cooccurrence_stats = CooccurrenceStats(exclude_indices=exclude_puzzle_indices)
     
     def similarity(self, word1: str, word2: str) -> float:
         """
@@ -41,14 +34,12 @@ class CombinedSimilarity:
             self.word_embeddings.cosine_similarity(word1, word2)
         )
         
-        cooccurrence_sim = self.cooccurrence_stats.cooccurrence_similarity(word1, word2)
         lexical_sim = lexical_similarity(word1, word2)
         pattern_sim = pattern_similarity(word1, word2)
         
         # Weighted combination
         combined = (
             config.EMBEDDING_WEIGHT * embedding_sim +
-            config.COOCCURRENCE_WEIGHT * cooccurrence_sim +
             config.LEXICAL_WEIGHT * lexical_sim +
             config.PATTERN_WEIGHT * pattern_sim
         )
