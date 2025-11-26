@@ -21,7 +21,7 @@ HC_MAX_ITERATIONS = 1000
 # Simulated Annealing parameters
 SA_INITIAL_TEMP = 100
 SA_COOLING_RATE = 0.95
-SA_MAX_ITERATIONS = 1000
+SA_MAX_ITERATIONS = 2000
 SA_MIN_TEMP = 0.01  # Minimum temperature threshold - algorithm stops when temperature drops below this
 
 # Objective function weights
@@ -34,7 +34,8 @@ ML_CLASSIFIER = "logistic_regression"
 ML_RANDOM_STATE = 42
 
 # Word embeddings
-EMBEDDING_MODEL = "glove-wiki-gigaword-300"
+#EMBEDDING_MODEL = "glove-wiki-gigaword-300"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Iterative solver parameters
 ITERATIVE_MAX_COMBINATIONS = 200  # Maximum number of word combinations to consider when finding most similar group

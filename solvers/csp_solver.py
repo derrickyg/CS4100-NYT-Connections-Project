@@ -73,7 +73,13 @@ class CSPSolver:
                 
                 # Forward checking: if group is full, propagate constraints
                 if len(groups[group_id]) == 4:
-                    self._propagate_constraints(groups, unassigned_words)
+                    ok = self._propagate_constraints(groups, unassigned_words)
+                    # If propagation detects a dead-end (some word has no valid groups),
+                    # undo assignment and continue to next group (backtrack).
+                    if not ok:
+                        groups[group_id].remove(word)
+                        unassigned_words.add(word)
+                        continue
                 
                 # Recurse
                 result = self._backtrack(groups, unassigned_words)
@@ -199,15 +205,39 @@ class CSPSolver:
                               unassigned_words: Set[str]):
         """
         Propagate constraints when a group becomes full.
-        This is a simple implementation - could be enhanced with AC-3.
+        Previously, the CSP did not do any forward-checking, so it explored
+        branches that would fail later. 
+        This method tests for any remaining word to see if it has at least one valid group
+        it can be assigned to. If any word has zero valid groups, we return False
+        to indicate a dead-end.
         
         Args:
             groups: Current group assignments
             unassigned_words: Unassigned words
         """
-        # In a full implementation, we would remove the full group from
-        # the domains of unassigned words. For now, this is a placeholder.
-        pass
+        # Forward-checking: ensure that after a group becomes full, every
+        # unassigned word still has at least one possible group it can be
+        # consistently assigned to. If any unassigned word has zero valid
+        # groups, return False to indicate this branch is a dead-end.
+
+        # For each unassigned word, count how many groups would accept it
+        for word in list(unassigned_words):
+            valid_groups = 0
+            for group_id in [1, 2, 3, 4]:
+                # Skip full groups
+                if len(groups[group_id]) >= 4:
+                    continue
+                # If assigning to this group would be consistent, count it
+                if self._is_consistent(word, group_id, groups):
+                    valid_groups += 1
+
+            # If no valid groups remain for this word, propagation fails
+            if valid_groups == 0:
+                return False
+
+        # Optionally, more advanced propagation (AC-3) could prune domains
+        # here. For now, return True to indicate propagation succeeded.
+        return True
     
     def _validate_solution(self, groups: Dict[int, List[str]]) -> bool:
         """
@@ -230,4 +260,3 @@ class CSPSolver:
             all_words.extend(group_words)
         
         return len(set(all_words)) == 16 and len(all_words) == 16
-

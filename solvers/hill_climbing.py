@@ -7,7 +7,8 @@ import random
 import copy
 from similarity.combined_similarity import CombinedSimilarity
 import config
-
+from tqdm import tqdm
+from sentence_transformers import SentenceTransformer
 
 class HillClimbingSolver:
     """Hill climbing solver with random restarts."""
@@ -20,6 +21,14 @@ class HillClimbingSolver:
             similarity_function: Function to compute word similarity
         """
         self.similarity_fn = similarity_function
+        model_name = config.EMBEDDING_MODEL
+        try:
+            print(f"Loading SentenceTransformer model: {model_name}...")
+            self.model = SentenceTransformer(model_name)
+            print(f"✓ Model loaded successfully")
+        except Exception as e:
+            print(f"✗ Error loading model: {e}")
+        self.model = None
     
     def solve(self, words: List[str]) -> Dict[int, List[str]]:
         """
@@ -45,6 +54,7 @@ class HillClimbingSolver:
             improved = True
             iterations = 0
             
+            pbar = tqdm(total=config.HC_MAX_ITERATIONS, desc="Hill Climbing", unit="iterations")
             while improved and iterations < config.HC_MAX_ITERATIONS:
                 improved = False
                 neighbors = self._generate_neighbors(current)
@@ -70,6 +80,14 @@ class HillClimbingSolver:
             if current_score > best_score:
                 best_solution = current
                 best_score = current_score
+
+            pbar.set_postfix({
+                'best_score': f'{best_score:.4f}',
+                'last_iters': iterations
+            })
+            pbar.update(1)
+        
+        pbar.close()
         
         return best_solution
     

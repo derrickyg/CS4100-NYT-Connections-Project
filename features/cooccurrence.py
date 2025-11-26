@@ -98,17 +98,20 @@ class CooccurrenceStats:
         
         pair = tuple(sorted([w1_upper, w2_upper]))
         pair_count = self.pair_counts[pair]
-        
+
+        if self.total_puzzles == 0:
+            return 0.0
+
         if pair_count == 0:
             return 0.0
-        
+
         # Get individual word frequencies
         w1_count = self.word_counts.get(w1_upper, 0)
         w2_count = self.word_counts.get(w2_upper, 0)
-        
+
         if w1_count == 0 or w2_count == 0:
             return 0.0
-        
+
         # Compute PMI: log(P(x,y) / (P(x) * P(y)))
         # P(x,y) = pair_count / total_puzzles
         # P(x) = w1_count / total_puzzles

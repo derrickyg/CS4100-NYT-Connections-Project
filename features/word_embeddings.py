@@ -4,6 +4,7 @@ Load and use pre-trained word embeddings.
 import gensim.downloader as api
 from typing import Optional
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 # Global cache for embedding models (loaded once, reused across instances)
 _embedding_model_cache = {}
@@ -12,7 +13,8 @@ _embedding_model_cache = {}
 class WordEmbeddings:
     """Wrapper for pre-trained word embeddings."""
     
-    def __init__(self, model_name: str = "glove-wiki-gigaword-300"):
+    #def __init__(self, model_name: str = "glove-wiki-gigaword-300"):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         """
         Initialize word embeddings.
         Uses global cache to avoid reloading models.
@@ -28,7 +30,8 @@ class WordEmbeddings:
             self.model = _embedding_model_cache[model_name]
         else:
             self.model = None
-            self._load_model()
+            self.model = SentenceTransformer(model_name)
+            #self._load_model()
             # Cache the model for future use
             if self.model is not None:
                 _embedding_model_cache[model_name] = self.model
@@ -37,7 +40,8 @@ class WordEmbeddings:
         """Load the embedding model."""
         print(f"Loading word embeddings model: {self.model_name} (this may take 30-60 seconds on first run)...")
         try:
-            self.model = api.load(self.model_name)
+            #self.model = api.load(self.model_name)
+            self.model = SentenceTransformer(self.model_name)
             print(f"✓ Successfully loaded {self.model_name}")
         except Exception as e:
             print(f"Warning: Could not load {self.model_name}: {e}")
@@ -63,38 +67,62 @@ class WordEmbeddings:
         if self.model is None:
             return None
         
-        # Handle multi-word phrases (e.g., "SOLAR PANEL")
-        words = word.split()
-        if len(words) > 1:
-            # Average embeddings of individual words
-            embeddings = []
-            for w in words:
-                emb = self._get_single_word_embedding(w)
-                if emb is not None:
-                    embeddings.append(emb)
-            
-            if embeddings:
-                # Average the embeddings
-                return np.mean(embeddings, axis=0)
+        try:
+            # Sentence transformers handle phrases naturally
+            # No need to split or do special processing
+            embedding = self.model.encode(word, convert_to_numpy=True)
+            return embedding
+        except Exception as e:
+            print(f"Error encoding '{word}': {e}")
             return None
         
-        # Single word - try different case variations
-        return self._get_single_word_embedding(word)
+        # # Handle multi-word phrases (e.g., "SOLAR PANEL")
+        # words = word.split()
+        # if len(words) > 1:
+        #     # Average embeddings of individual words
+        #     embeddings = []
+        #     for w in words:
+        #         emb = self._get_single_word_embedding(w)
+        #         if emb is not None:
+        #             embeddings.append(emb)
+            
+        #     if embeddings:
+        #         # Average the embeddings
+        #         return np.mean(embeddings, axis=0)
+        #     return None
+        
+        # # Single word - try different case variations
+        # return self._get_single_word_embedding(word)
     
     def _get_single_word_embedding(self, word: str) -> Optional[np.ndarray]:
         """Get embedding for a single word, trying different case variations."""
-        word_upper = word.upper()
-        word_lower = word.lower()
-        word_title = word.title()
+        variations = [
+            word,
+            word.lower(),
+            word.upper(),
+            word.capitalize()
+        ]
         
-        # Try different case variations
-        for word_variant in [word, word_upper, word_lower, word_title]:
+        for variant in variations:
             try:
-                return self.model[word_variant]
-            except KeyError:
+                embedding = self.model.encode(variant, convert_to_numpy=True)
+                return embedding
+            except:
                 continue
         
         return None
+        # word_upper = word.upper()
+        # word_lower = word.lower()
+        # word_title = word.title()
+        
+        # # Try different case variations
+        # for word_variant in [word, word_upper, word_lower, word_title]:
+        #     try:
+        #         return self.model[word_variant]
+        #     except KeyError:
+        #         continue
+        
+        # return None
     
     def cosine_similarity(self, word1: str, word2: str) -> float:
         """
