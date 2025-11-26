@@ -96,7 +96,7 @@ class IterativeSolver:
                     self.tried_groups.add(group_tuple)
             
             # Submit group
-            print(f"  Submission {len(submissions) + 1}: {', '.join(group)}")
+            submission_num = len(submissions) + 1
             feedback = game.submit_group(group)
             submission_data = {
                 "group": group,
@@ -108,11 +108,9 @@ class IterativeSolver:
             # Learn from feedback
             self._learn_from_feedback(group, feedback, game)
             
-            # Print feedback
+            # Print correct guesses
             if feedback.is_correct:
-                print(f"    → ✓ Correct! Group {feedback.group_id} solved")
-            else:
-                print(f"    → ✗ Incorrect ({feedback.correct_words}/4 words correct)")
+                print(f"Correct guess #{submission_num}: {', '.join(group)}")
         
         # Get final state
         state = game.get_state()
