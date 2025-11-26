@@ -62,8 +62,6 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
     start_time = time.time()
     
     # Get the 16 words from puzzle
-    print("TESTINGGGG")
-    print(puzzle.groups)
     all_words = []
     for group_words in puzzle.groups.values():
         all_words.extend(group_words)
