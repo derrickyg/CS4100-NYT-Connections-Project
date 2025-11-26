@@ -257,8 +257,8 @@ def main():
     parser.add_argument(
         "--num-puzzles",
         type=int,
-        default=1,
-        help="Number of puzzles to solve (default: 1)"
+        default=None,
+        help="Number of puzzles to solve (default: all)"
     )
     parser.add_argument(
         "--mistakes-allowed",
@@ -271,7 +271,7 @@ def main():
     
     # Load puzzles
     all_puzzles = load_historical_data()
-    test_puzzles = all_puzzles[:args.num_puzzles]
+    test_puzzles = all_puzzles if args.num_puzzles is None else all_puzzles[:args.num_puzzles]
     
     # solve the test puzzles
     solve_puzzles(test_puzzles, max_mistakes=args.mistakes_allowed)

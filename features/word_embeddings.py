@@ -4,9 +4,15 @@ Load and use pre-trained word embeddings.
 import gensim.downloader as api
 from typing import Optional
 import numpy as np
+import pickle
+from pathlib import Path
 
 # Global cache for embedding models (loaded once, reused across instances)
 _embedding_model_cache = {}
+
+# Directory for cached models
+MODELS_DIR = Path(__file__).parent.parent / "models"
+MODELS_DIR.mkdir(exist_ok=True)
 
 
 class WordEmbeddings:
@@ -15,7 +21,7 @@ class WordEmbeddings:
     def __init__(self, model_name: str = "glove-wiki-gigaword-300"):
         """
         Initialize word embeddings.
-        Uses global cache to avoid reloading models.
+        Uses global cache and disk cache to avoid reloading models.
         
         Args:
             model_name: Name of the embedding model to load
@@ -23,28 +29,65 @@ class WordEmbeddings:
         self.model_name = model_name
         global _embedding_model_cache
         
-        # Check if model is already cached
+        # Check if model is already cached in memory
         if model_name in _embedding_model_cache:
             self.model = _embedding_model_cache[model_name]
         else:
             self.model = None
             self._load_model()
-            # Cache the model for future use
+            # Cache the model for future use (both in memory and on disk)
             if self.model is not None:
                 _embedding_model_cache[model_name] = self.model
     
     def _load_model(self):
-        """Load the embedding model."""
+        """Load the embedding model from disk cache or gensim API."""
+        # Create cache filename from model name (replace hyphens with underscores for filename)
+        cache_filename = self.model_name.replace("-", "_") + ".pkl"
+        cache_path = MODELS_DIR / cache_filename
+        
+        # Try to load from disk cache first
+        if cache_path.exists():
+            try:
+                print(f"Loading word embeddings model from cache: {cache_path}...")
+                with open(cache_path, 'rb') as f:
+                    self.model = pickle.load(f)
+                print(f"✓ Successfully loaded {self.model_name} from cache")
+                return
+            except Exception as e:
+                print(f"Warning: Could not load from cache ({e}), loading from API...")
+        
+        # Load from gensim API if cache doesn't exist or failed
         print(f"Loading word embeddings model: {self.model_name} (this may take 30-60 seconds on first run)...")
         try:
             self.model = api.load(self.model_name)
             print(f"✓ Successfully loaded {self.model_name}")
+            
+            # Save to disk cache for future use
+            try:
+                print(f"Saving model to cache: {cache_path}...")
+                with open(cache_path, 'wb') as f:
+                    pickle.dump(self.model, f)
+                print(f"✓ Successfully cached {self.model_name}")
+            except Exception as e:
+                print(f"Warning: Could not save to cache ({e}), but model is loaded")
+                
         except Exception as e:
             print(f"Warning: Could not load {self.model_name}: {e}")
             print("Falling back to word2vec-google-news-300")
             try:
                 self.model = api.load("word2vec-google-news-300")
                 print("✓ Successfully loaded word2vec-google-news-300")
+                
+                # Save fallback model to cache
+                fallback_cache_filename = "word2vec_google_news_300.pkl"
+                fallback_cache_path = MODELS_DIR / fallback_cache_filename
+                try:
+                    with open(fallback_cache_path, 'wb') as f:
+                        pickle.dump(self.model, f)
+                    print(f"✓ Successfully cached word2vec-google-news-300")
+                except Exception as e:
+                    print(f"Warning: Could not save fallback model to cache ({e})")
+                    
             except Exception as e2:
                 print(f"Error loading word2vec: {e2}")
                 self.model = None
