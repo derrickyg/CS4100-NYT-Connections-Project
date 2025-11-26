@@ -251,6 +251,12 @@ def main():
         default=4,
         help="Maximum number of mistakes allowed in game mode (default: 4)"
     )
+    parser.add_argument(
+        "--solver-type",
+        type=str,
+        default="iterative",
+        help="Type of solver to use (default: iterative)"
+    )
     
     args = parser.parse_args()
     
@@ -259,8 +265,7 @@ def main():
     test_puzzles = all_puzzles if args.num_puzzles is None else all_puzzles[:args.num_puzzles]
     
     # solve the test puzzles
-    solve_puzzles(test_puzzles, max_mistakes=args.mistakes_allowed)
-    solve_puzzles(test_puzzles, max_mistakes=args.mistakes_allowed, solver_type="kmeans")
+    solve_puzzles(test_puzzles, max_mistakes=args.mistakes_allowed, solver_type=args.solver_type)
 
 
 if __name__ == "__main__":
