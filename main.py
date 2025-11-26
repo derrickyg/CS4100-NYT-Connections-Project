@@ -11,32 +11,21 @@ from evaluation.game_simulator import GameSimulator
 from solvers.iterative_solver import IterativeSolver
 
 
-def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistakes: int = 4, 
-                              similarity_fn: Optional[CombinedSimilarity] = None):
+def solve_with_game_simulation(puzzle: Puzzle, similarity_fn: CombinedSimilarity, max_mistakes: int = 4):
     """
     Solve puzzle using game simulation with feedback.
     
     Args:
         puzzle: Puzzle to solve
-        verbose: Whether to print detailed output
         max_mistakes: Maximum number of mistakes allowed
         similarity_fn: Pre-initialized similarity function (optional, creates new if None)
         
     Returns:
-        Dictionary with results
+        Dictionary with metrics
     """
     start_time = time.time()
-    
-    if verbose:
-        print(f"\n{'='*60}")
-        print("GAME SIMULATION MODE")
-        print(f"{'='*60}")
-        print(f"Puzzle: {puzzle.contest or puzzle.puzzle_id}")
-        if puzzle.difficulty:
-            print(f"Difficulty: {puzzle.difficulty}")
-        print(f"\nWords: {', '.join(puzzle.words)}")
-        print(f"\nRules: Submit groups of 4 words. Max {max_mistakes} mistakes allowed.")
-        print(f"{'='*60}\n")
+    print(f"Solving puzzle {puzzle.puzzle_id}")
+    print(f"Words: {', '.join(puzzle.words)}")
     
     # Initialize game simulator
     game_init_start = time.time()
@@ -45,9 +34,6 @@ def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistake
     
     # Initialize iterative solver (reuse similarity_fn if provided)
     solver_init_start = time.time()
-    if similarity_fn is None:
-        # Always load models fresh to prevent data leakage
-        similarity_fn = CombinedSimilarity()
     solver = IterativeSolver(similarity_fn)
     solver_init_time = time.time() - solver_init_start
     
@@ -120,67 +106,66 @@ def solve_with_game_simulation(puzzle: Puzzle, verbose: bool = True, max_mistake
         word_accuracy = None
     
     # Display results
-    if verbose:
-        print(f"\n{'='*60}")
-        print("GAME RESULTS")
-        print(f"{'='*60}")
-        print(f"Total Submissions: {result['total_submissions']}")
-        print(f"Mistakes: {result['mistakes']}/{max_mistakes}")
-        print(f"Result: {'WON!' if result['is_won'] else f'LOST ({max_mistakes} mistakes)'}")
+    print(f"\n{'='*60}")
+    print("GAME RESULTS")
+    print(f"{'='*60}")
+    print(f"Total Submissions: {result['total_submissions']}")
+    print(f"Mistakes: {result['mistakes']}/{max_mistakes}")
+    print(f"Result: {'WON!' if result['is_won'] else f'LOST ({max_mistakes} mistakes)'}")
+    
+    if accuracy is not None:
+        print(f"\nAccuracy Metrics:")
+        print(f"  Partial Accuracy: {accuracy:.2%}")
+        print(f"  Word Accuracy: {word_accuracy:.2%}")
         
-        if accuracy is not None:
-            print(f"\nAccuracy Metrics:")
-            print(f"  Partial Accuracy: {accuracy:.2%}")
-            print(f"  Word Accuracy: {word_accuracy:.2%}")
-            
-            # Show best partial match from submissions
-            best_partial = max(
-                (s['feedback'].correct_words for s in result['submissions'] if not s['feedback'].is_correct),
-                default=0
-            )
-            if best_partial > 0:
-                print(f"  Best Partial Match: {best_partial}/4 words correct")
-        
-        if result['is_won']:
-            print(f"\nSolved Groups:")
+        # Show best partial match from submissions
+        best_partial = max(
+            (s['feedback'].correct_words for s in result['submissions'] if not s['feedback'].is_correct),
+            default=0
+        )
+        if best_partial > 0:
+            print(f"  Best Partial Match: {best_partial}/4 words correct")
+    
+    if result['is_won']:
+        print(f"\nSolved Groups:")
+        for group_id in sorted(result['solved_groups'].keys()):
+            desc = puzzle.category_descriptions.get(group_id, "")
+            print(f"  Group {group_id} ({desc}): {', '.join(result['solved_groups'][group_id])}")
+    else:
+        # Show solved groups if any
+        if len(result['solved_groups']) > 0:
+            print(f"\nPartially Solved Groups (before losing):")
             for group_id in sorted(result['solved_groups'].keys()):
                 desc = puzzle.category_descriptions.get(group_id, "")
                 print(f"  Group {group_id} ({desc}): {', '.join(result['solved_groups'][group_id])}")
         else:
-            # Show solved groups if any
-            if len(result['solved_groups']) > 0:
-                print(f"\nPartially Solved Groups (before losing):")
-                for group_id in sorted(result['solved_groups'].keys()):
-                    desc = puzzle.category_descriptions.get(group_id, "")
-                    print(f"  Group {group_id} ({desc}): {', '.join(result['solved_groups'][group_id])}")
-            else:
-                print(f"\nNo groups were fully solved.")
-            
-            # Show best attempts
-            print(f"\nBest Attempts:")
-            submissions_with_feedback = [
-                s for s in result['submissions'] 
-                if s['feedback'].correct_words > 0
-            ]
-            if submissions_with_feedback:
-                # Sort by correct words (descending)
-                submissions_with_feedback.sort(
-                    key=lambda x: x['feedback'].correct_words, 
-                    reverse=True
-                )
-                for i, sub in enumerate(submissions_with_feedback[:3], 1):  # Show top 3
-                    print(f"  Attempt {i}: {', '.join(sub['group'])} "
-                          f"({sub['feedback'].correct_words}/4 correct)")
-            else:
-                print(f"  No partial matches found.")
+            print(f"\nNo groups were fully solved.")
         
-        print(f"\n{'='*60}")
-        print(f"\nTiming Information:")
-        print(f"  Game initialization: {game_init_time:.2f}s")
-        print(f"  Solver initialization: {solver_init_time:.2f}s")
-        print(f"  Solving time: {solve_time:.2f}s")
-        print(f"  Total time: {total_time:.2f}s")
-        print(f"{'='*60}")
+        # Show best attempts
+        print(f"\nBest Attempts:")
+        submissions_with_feedback = [
+            s for s in result['submissions'] 
+            if s['feedback'].correct_words > 0
+        ]
+        if submissions_with_feedback:
+            # Sort by correct words (descending)
+            submissions_with_feedback.sort(
+                key=lambda x: x['feedback'].correct_words, 
+                reverse=True
+            )
+            for i, sub in enumerate(submissions_with_feedback[:3], 1):  # Show top 3
+                print(f"  Attempt {i}: {', '.join(sub['group'])} "
+                        f"({sub['feedback'].correct_words}/4 correct)")
+        else:
+            print(f"  No partial matches found.")
+    
+    print(f"\n{'='*60}")
+    print(f"\nTiming Information:")
+    print(f"  Game initialization: {game_init_time:.2f}s")
+    print(f"  Solver initialization: {solver_init_time:.2f}s")
+    print(f"  Solving time: {solve_time:.2f}s")
+    print(f"  Total time: {total_time:.2f}s")
+    print(f"{'='*60}")
     
     # Add timing to result
     result['timing'] = {
@@ -203,17 +188,12 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4):
     """
     results = []
     
-    # initialize the similarity function (solver)
+    # initialize the similarity function
     similarity_fn = CombinedSimilarity()
 
     
-    for i, puzzle in enumerate(test_puzzles):
-        print(f"\n{'='*70}")
-        print(f"Puzzle {i+1}/{len(test_puzzles)}: {puzzle.puzzle_id}")
-        print(f"{'='*70}")
-        
-        result = solve_with_game_simulation(puzzle, verbose=True, max_mistakes=max_mistakes, 
-                                          similarity_fn=similarity_fn)
+    for puzzle in test_puzzles:
+        result = solve_with_game_simulation(puzzle, similarity_fn, max_mistakes=max_mistakes)
         results.append(result)
     
     # Aggregate statistics
