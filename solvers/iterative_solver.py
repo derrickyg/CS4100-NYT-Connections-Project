@@ -20,19 +20,18 @@ class IterativeSolver:
             similarity_function: Function to compute word similarity
         """
         self.similarity_fn = similarity_function
-        # Track which words we know belong together (from feedback)
+        # Track which words we know belong together
         self.known_pairs: Set[tuple] = set()
         # Track which words we know don't belong together
         self.forbidden_pairs: Set[tuple] = set()
-        # Track submission history for learning
+        # Track submission history
         self.submission_history: List[Dict] = []
         # Track groups we've already tried (to avoid repeats)
         self.tried_groups: Set[tuple] = set()
     
     def _normalize_group(self, group: List[str]) -> tuple:
         """
-        Normalize a group to a tuple for comparison.
-        Sorts and uppercases words for order-independent, case-insensitive comparison.
+        sort and uppercase the words in the group for comparison purposes
         
         Args:
             group: List of words
@@ -88,7 +87,7 @@ class IterativeSolver:
                     self.tried_groups.add(group_tuple)
                     break
             
-            # Fallback if all attempts failed
+            # Fallback if all attempts failed - just get a random group
             if group is None:
                 group = self._get_random_untried_group(remaining, self.tried_groups)
                 if group:
@@ -139,7 +138,7 @@ class IterativeSolver:
         if len(remaining_words) < 4:
             return remaining_words
         
-        # Strategy 1: Refine partial matches (3/4 or 2/4 correct)
+        # Strategy 1: deal with partial matches (3/4 or 2/4 correct)
         for correct_count in [3, 2]:
             history_size = 10 if correct_count == 3 else 5
             for submission in reversed(self.submission_history[-history_size:]):

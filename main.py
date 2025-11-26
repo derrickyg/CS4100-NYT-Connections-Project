@@ -12,48 +12,36 @@ from solvers.iterative_solver import IterativeSolver
 
 def solve_with_game_simulation(puzzle: Puzzle, similarity_fn: CombinedSimilarity, max_mistakes: int = 4):
     """
-    Solve puzzle using game simulation with feedback.
+    attempt to solve a puzzle and provide metrics on the model's performance
     
     Args:
         puzzle: Puzzle to solve
         max_mistakes: Maximum number of mistakes allowed
-        similarity_fn: Pre-initialized similarity function (optional, creates new if None)
+        similarity_fn: Pre-initialized similarity function
         
     Returns:
-        Dictionary with metrics
+        Dictionary with metrics on the model's performance
     """
     start_time = time.time()
     
-    # Initialize game simulator
-    game_init_start = time.time()
+    # game simulator class - basically simulates the game
     game = GameSimulator(puzzle, max_mistakes=max_mistakes)
-    game_init_time = time.time() - game_init_start
     
-    # Initialize iterative solver (reuse similarity_fn if provided)
-    solver_init_start = time.time()
+    # solver class - works with the GameSimulator state to make guesses to solve the puzzle
     solver = IterativeSolver(similarity_fn)
-    solver_init_time = time.time() - solver_init_start
     
     print(f"\npuzzle id: {puzzle.puzzle_id}")
 
-    # Solve with feedback
-    solve_start = time.time()
+    # solve the puzzle using the IterativeSolver class on the GameSimulator state
     result = solver.solve_with_feedback(game)
-    solve_time = time.time() - solve_start
     
     total_time = time.time() - start_time
     
-    # Display results
+    # display results
     num_correct = len(result['solved_groups'])
     print(f"Correct guesses: {num_correct}")
     
-    # Add timing to result
-    result['timing'] = {
-        'game_init': game_init_time,
-        'solver_init': solver_init_time,
-        'solve': solve_time,
-        'total': total_time
-    }
+    result['timing'] = {'total': total_time}
     
     return result
 
