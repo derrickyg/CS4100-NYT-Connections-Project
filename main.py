@@ -135,14 +135,14 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
             results.append(result)
     
     elif solver_type == "kmeans":
-        # Initialize K-Means solver with embedding function
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer('all-MiniLM-L6-v2')
+        # Initialize K-Means solver with WordEmbeddings (GloVe, same as iterative solver)
+        from features.word_embeddings import WordEmbeddings
+        import config
         
-        def get_embedding(word):
-            return model.encode(word)
+        # Use the same embedding model as configured (GloVe)
+        embeddings_fn = WordEmbeddings(config.EMBEDDING_MODEL)
         
-        kmeans_solver = KMeansConnectionsSolver(get_embedding)
+        kmeans_solver = KMeansConnectionsSolver(embeddings_fn)
         
         print(f"\n{'='*70}")
         print("USING K-MEANS CLUSTERING SOLVER")

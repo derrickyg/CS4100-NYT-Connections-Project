@@ -139,6 +139,22 @@ class WordEmbeddings:
         
         return None
     
+    def __call__(self, word: str) -> np.ndarray:
+        """
+        Allow WordEmbeddings to be called as a function (for K-Means solver compatibility).
+        
+        Args:
+            word: Word or phrase to embed
+            
+        Returns:
+            Embedding vector (returns zero vector if word not found)
+        """
+        embedding = self.get_embedding(word)
+        if embedding is None:
+            # Return zero vector with same dimension as GloVe (300 dimensions)
+            return np.zeros(300)
+        return embedding
+    
     def cosine_similarity(self, word1: str, word2: str) -> float:
         """
         Compute cosine similarity between two words.
