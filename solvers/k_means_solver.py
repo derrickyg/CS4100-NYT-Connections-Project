@@ -4,7 +4,6 @@ K-Means clustering approach for grouping 16 words into 4 groups of 4.
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 from sklearn.cluster import KMeans
-from scipy.spatial.distance import cdist
 from itertools import combinations
 import warnings
 from features.word_embeddings import WordEmbeddings

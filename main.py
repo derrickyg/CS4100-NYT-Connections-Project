@@ -180,58 +180,6 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
     
     return results
 
-def compare_solvers(test_puzzles: List[Puzzle], max_mistakes: int = 4):
-    """
-    Compare iterative and K-Means solvers side by side.
-    
-    Args:
-        test_puzzles: List of puzzles to solve
-        max_mistakes: Maximum number of mistakes allowed per puzzle
-    """
-    print(f"\n{'='*70}")
-    print("COMPARING SOLVERS")
-    print(f"{'='*70}\n")
-    
-    # Run iterative solver
-    print("Running Iterative Solver...")
-    iterative_results = solve_puzzles(test_puzzles, max_mistakes, solver_type="iterative")
-    
-    # Run K-Means solver
-    print("\nRunning K-Means Solver...")
-    kmeans_results = solve_puzzles(test_puzzles, max_mistakes, solver_type="kmeans")
-    
-    # Side-by-side comparison
-    print(f"\n{'='*70}")
-    print("SIDE-BY-SIDE COMPARISON")
-    print(f"{'='*70}")
-    print(f"{'Metric':<30} {'Iterative':<20} {'K-Means':<20}")
-    print(f"{'-'*70}")
-    
-    total_puzzles = len(test_puzzles)
-    
-    # Wins
-    iter_wins = sum(1 for r in iterative_results if r['is_won'])
-    kmeans_wins = sum(1 for r in kmeans_results if r['is_won'])
-    print(f"{'Win Rate':<30} {iter_wins/total_puzzles:<20.1%} {kmeans_wins/total_puzzles:<20.1%}")
-    
-    # Average correct
-    iter_correct = sum(len(r['solved_groups']) for r in iterative_results) / total_puzzles
-    kmeans_correct = sum(len(r['solved_groups']) for r in kmeans_results) / total_puzzles
-    print(f"{'Avg Correct Guesses':<30} {iter_correct:<20.2f} {kmeans_correct:<20.2f}")
-    
-    # Average submissions
-    iter_subs = sum(r['total_submissions'] for r in iterative_results) / total_puzzles
-    kmeans_subs = sum(r['total_submissions'] for r in kmeans_results) / total_puzzles
-    print(f"{'Avg Submissions':<30} {iter_subs:<20.2f} {kmeans_subs:<20.2f}")
-    
-    # Average time
-    iter_time = sum(r.get('timing', {}).get('total', 0) for r in iterative_results) / total_puzzles
-    kmeans_time = sum(r.get('timing', {}).get('total', 0) for r in kmeans_results) / total_puzzles
-    print(f"{'Avg Time (seconds)':<30} {iter_time:<20.2f} {kmeans_time:<20.2f}")
-    
-    print(f"{'='*70}\n")
-
-
 
 def main():
     """let the agent play the game!"""

@@ -34,21 +34,4 @@ class EmbeddingSimilarity:
     def _normalize_similarity(self, sim: float) -> float:
         """Normalize similarity from [-1, 1] to [0, 1]."""
         return (sim + 1.0) / 2.0
-    
-    def average_similarity(self, word: str, group_words: list) -> float:
-        """
-        Compute average similarity between a word and a group of words.
-        
-        Args:
-            word: Word to compare
-            group_words: List of words in the group
-            
-        Returns:
-            Average similarity score
-        """
-        if len(group_words) == 0:
-            return 0.0
-        
-        total_sim = sum(self.similarity(word, other_word) for other_word in group_words)
-        return total_sim / len(group_words)
 
