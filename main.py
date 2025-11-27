@@ -8,46 +8,10 @@ from solvers.k_means_solver import KMeansConnectionsSolver
 from data.load_dataset import load_historical_data, Puzzle
 from similarity.embedding_similarity import EmbeddingSimilarity
 from evaluation.game_simulator import GameSimulator
-from solvers.iterative_solver import IterativeSolver
 from solvers.csp_solver import CSPSolver
 from features.word_embeddings import WordEmbeddings
 import config
 
-
-def solve_with_game_simulation(puzzle: Puzzle, similarity_fn: EmbeddingSimilarity, max_mistakes: int = 4):
-    """
-    attempt to solve a puzzle and provide metrics on the model's performance
-    
-    Args:
-        puzzle: Puzzle to solve
-        max_mistakes: Maximum number of mistakes allowed
-        similarity_fn: Pre-initialized similarity function
-        
-    Returns:
-        Dictionary with metrics on the model's performance
-    """
-    start_time = time.time()
-    
-    # game simulator class - basically simulates the game
-    game = GameSimulator(puzzle, max_mistakes=max_mistakes)
-    
-    # solver class - works with the GameSimulator state to make guesses to solve the puzzle
-    solver = IterativeSolver(similarity_fn)
-    
-    print(f"\npuzzle id: {puzzle.puzzle_id}")
-
-    # solve the puzzle using the IterativeSolver class on the GameSimulator state
-    result = solver.solve_with_feedback(game)
-    
-    total_time = time.time() - start_time
-    
-    # display results
-    num_correct = len(result['solved_groups'])
-    print(f"Correct guesses: {num_correct}")
-    
-    result['timing'] = {'total': total_time}
-    
-    return result
 
 def solve_with_csp(puzzle: Puzzle, similarity_fn: EmbeddingSimilarity, max_mistakes: int = 4) -> Dict:
     """
@@ -150,29 +114,19 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
 
 
 def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4, 
-                 solver_type: str = "iterative"):
+                 solver_type: str = "csp"):
     """
     Solve a list of puzzles
     
     Args:
         test_puzzles: List of puzzles to solve
         max_mistakes: Maximum number of mistakes allowed per puzzle (default: 4)
-        solver_type: Type of solver to use ("iterative", "kmeans", or "csp")
+        solver_type: Type of solver to use ("kmeans" or "csp")
     """
     results = []
     
     # Initialize solver based on type
-    if solver_type == "iterative":
-        similarity_fn = EmbeddingSimilarity()
-        print(f"\n{'='*70}")
-        print("USING ITERATIVE SOLVER")
-        print(f"{'='*70}\n")
-        
-        for puzzle in test_puzzles:
-            result = solve_with_game_simulation(puzzle, similarity_fn, max_mistakes=max_mistakes)
-            results.append(result)
-    
-    elif solver_type == "kmeans":
+    if solver_type == "kmeans":
         embeddings_fn = WordEmbeddings(config.EMBEDDING_MODEL)
         
         kmeans_solver = KMeansConnectionsSolver(embeddings_fn)
@@ -196,7 +150,7 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
             results.append(result)
     
     else:
-        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'iterative', 'kmeans', 'csp'")
+        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'kmeans', 'csp'")
     
     # Aggregate statistics
     total_puzzles = len(results)
@@ -245,8 +199,8 @@ def main():
     parser.add_argument(
         "--solver-type",
         type=str,
-        default="iterative",
-        help="Type of solver to use: 'iterative', 'kmeans', or 'csp' (default: iterative)"
+        default="csp",
+        help="Type of solver to use: 'kmeans' or 'csp' (default: csp)"
     )
     
     args = parser.parse_args()

@@ -151,7 +151,6 @@ class CSPSolver:
     def _handle_partial_matches(self, remaining: List[str]) -> Optional[List[str]]:
         """
         Handle partial matches (3/4 or 2/4 correct) - this is critical for success!
-        Similar to iterative solver's approach.
         
         Args:
             remaining: Remaining words
@@ -326,7 +325,7 @@ class CSPSolver:
         best_score = float('-inf')
         
         from itertools import combinations
-        # Use prioritized combinations like iterative solver
+        # Prioritize combinations with known pairs
         all_combos = list(combinations(remaining, 4))
         max_combos = min(200, len(all_combos))
         
