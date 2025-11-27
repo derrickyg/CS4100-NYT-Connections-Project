@@ -2,11 +2,6 @@
 Configuration parameters for NYT Connections Solver.
 """
 
-# Similarity weights
-EMBEDDING_WEIGHT = 0.7  # Semantic meaning from pre-trained embeddings
-LEXICAL_WEIGHT = 0.2    # Edit distance, prefixes, suffixes
-PATTERN_WEIGHT = 0.1    # Pattern matching
-
 # Word embeddings
 EMBEDDING_MODEL = "glove-wiki-gigaword-300"
 

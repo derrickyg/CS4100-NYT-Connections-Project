@@ -3,7 +3,7 @@ Iterative solver that uses game feedback to improve guesses.
 """
 from typing import List, Dict, Optional, Set
 from itertools import combinations
-from similarity.combined_similarity import CombinedSimilarity
+from similarity.embedding_similarity import EmbeddingSimilarity
 from evaluation.game_simulator import GameSimulator, GameFeedback
 import random
 import config
@@ -12,7 +12,7 @@ import config
 class IterativeSolver:
     """Solver that submits groups iteratively using game feedback."""
     
-    def __init__(self, similarity_function: CombinedSimilarity):
+    def __init__(self, similarity_function: EmbeddingSimilarity):
         """
         Initialize iterative solver.
         

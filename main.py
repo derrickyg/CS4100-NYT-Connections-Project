@@ -6,12 +6,14 @@ import time
 from typing import List, Dict
 from solvers.k_means_solver import KMeansConnectionsSolver
 from data.load_dataset import load_historical_data, Puzzle
-from similarity.combined_similarity import CombinedSimilarity
+from similarity.embedding_similarity import EmbeddingSimilarity
 from evaluation.game_simulator import GameSimulator
 from solvers.iterative_solver import IterativeSolver
+from features.word_embeddings import WordEmbeddings
+import config
 
 
-def solve_with_game_simulation(puzzle: Puzzle, similarity_fn: CombinedSimilarity, max_mistakes: int = 4):
+def solve_with_game_simulation(puzzle: Puzzle, similarity_fn: EmbeddingSimilarity, max_mistakes: int = 4):
     """
     attempt to solve a puzzle and provide metrics on the model's performance
     
@@ -125,7 +127,7 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
     
     # Initialize solver based on type
     if solver_type == "iterative":
-        similarity_fn = CombinedSimilarity()
+        similarity_fn = EmbeddingSimilarity()
         print(f"\n{'='*70}")
         print("USING ITERATIVE SOLVER")
         print(f"{'='*70}\n")
@@ -135,11 +137,6 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
             results.append(result)
     
     elif solver_type == "kmeans":
-        # Initialize K-Means solver with WordEmbeddings (GloVe, same as iterative solver)
-        from features.word_embeddings import WordEmbeddings
-        import config
-        
-        # Use the same embedding model as configured (GloVe)
         embeddings_fn = WordEmbeddings(config.EMBEDDING_MODEL)
         
         kmeans_solver = KMeansConnectionsSolver(embeddings_fn)

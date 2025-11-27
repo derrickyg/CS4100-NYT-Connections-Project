@@ -1,14 +1,12 @@
 """
-Combine multiple similarity metrics with learned weights.
+Compute word similarity using embeddings.
 """
 from features.word_embeddings import WordEmbeddings
-from features.lexical_features import lexical_similarity
-from features.pattern_matching import pattern_similarity
 import config
 
 
-class CombinedSimilarity:
-    """Combines multiple similarity metrics."""
+class EmbeddingSimilarity:
+    """Computes similarity between words using embeddings."""
     
     def __init__(self):
         """
@@ -20,31 +18,18 @@ class CombinedSimilarity:
     
     def similarity(self, word1: str, word2: str) -> float:
         """
-        Compute combined similarity between two words.
+        Compute similarity between two words using embeddings.
         
         Args:
             word1: First word
             word2: Second word
             
         Returns:
-            Combined similarity score between 0 and 1
+            Similarity score between 0 and 1
         """
-        # Get individual similarity scores
-        embedding_sim = self._normalize_similarity(
-            self.word_embeddings.cosine_similarity(word1, word2)
-        )
-        
-        lexical_sim = lexical_similarity(word1, word2)
-        pattern_sim = pattern_similarity(word1, word2)
-        
-        # Weighted combination
-        combined = (
-            config.EMBEDDING_WEIGHT * embedding_sim +
-            config.LEXICAL_WEIGHT * lexical_sim +
-            config.PATTERN_WEIGHT * pattern_sim
-        )
-        
-        return combined
+        # Normalize cosine similarity from [-1, 1] to [0, 1]
+        embedding_sim = self.word_embeddings.cosine_similarity(word1, word2)
+        return self._normalize_similarity(embedding_sim)
     
     def _normalize_similarity(self, sim: float) -> float:
         """Normalize similarity from [-1, 1] to [0, 1]."""
