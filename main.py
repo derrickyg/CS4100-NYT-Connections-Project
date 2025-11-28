@@ -73,10 +73,8 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
     
     print(f"\npuzzle id: {puzzle.puzzle_id}")
     
-    # Get K-Means clustering
-    clustering_start = time.time()
+    # Get K-Means predicted groups
     predicted_groups = kmeans_solver.solve_constrained(all_words, n_init=1000)
-    clustering_time = time.time() - clustering_start
     
     # Submit groups in order (sorted by cohesion)
     submissions = []
@@ -107,8 +105,7 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
         "mistakes": state["mistakes"],
         "is_won": state["is_won"],
         "timing": {
-            "total": total_time,
-            "clustering": clustering_time
+            "total": total_time
         }
     }
 
@@ -171,13 +168,7 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
     print(f"Average submissions per puzzle: {avg_submissions:.2f}")
     print(f"Average mistakes per puzzle: {avg_mistakes:.2f}")
     print(f"Average time per puzzle: {avg_total_time:.2f}s")
-    
-    if solver_type == "kmeans":
-        avg_clustering_time = sum(r.get('timing', {}).get('clustering', 0) for r in results) / total_puzzles
-        print(f"Average clustering time: {avg_clustering_time:.2f}s")
-    
     print(f"{'='*70}\n")
-    
     return results
 
 
