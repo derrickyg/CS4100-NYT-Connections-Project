@@ -1,0 +1,14 @@
+{
+  "words": [
+    "APPLE", "ORANGE", "PEAR", "BANANA",
+    "DOG", "CAT", "HORSE", "MOUSE",
+    "RED", "BLUE", "GREEN", "YELLOW",
+    "GUITAR", "PIANO", "DRUM", "VIOLIN"
+  ],
+  "groups": [
+    {"label": "Fruits", "words": ["APPLE", "ORANGE", "PEAR", "BANANA"]},
+    {"label": "Animals", "words": ["DOG", "CAT", "HORSE", "MOUSE"]},
+    {"label": "Colors", "words": ["RED", "BLUE", "GREEN", "YELLOW"]},
+    {"label": "Instruments", "words": ["GUITAR", "PIANO", "DRUM", "VIOLIN"]}
+  ]
+}
