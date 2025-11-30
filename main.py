@@ -10,6 +10,7 @@ from similarity.embedding_similarity import EmbeddingSimilarity
 from evaluation.game_simulator import GameSimulator
 from solvers.csp_solver import CSPSolver
 from features.word_embeddings import WordEmbeddings
+from solvers.random_solver import RandomSolver
 import config
 
 
@@ -109,6 +110,26 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
         }
     }
 
+def solve_with_random(puzzle: Puzzle, max_mistakes: int = 4):
+    """
+    Solve a puzzle using the RandomSolver and provide metrics.
+    
+    Args:
+        puzzle: Puzzle to solve
+        max_mistakes: Maximum number of mistakes allowed
+        
+    Returns:
+        Dictionary with metrics on the model's performance
+    """
+    from evaluation.game_simulator import GameSimulator
+    start_time = time.time()
+    game = GameSimulator(puzzle, max_mistakes=max_mistakes)
+    solver = RandomSolver()
+    result = solver.solve_with_feedback(game)
+    total_time = time.time() - start_time
+    result['timing'] = {'total': total_time}
+    return result
+
 
 def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4, 
                  solver_type: str = "csp"):
@@ -146,8 +167,17 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
             result = solve_with_csp(puzzle, similarity_fn, max_mistakes=max_mistakes)
             results.append(result)
     
+    elif solver_type == "random":
+        print(f"\n{'='*70}")
+        print("USING RANDOM SOLVER")
+        print(f"{'='*70}\n")
+        
+        for puzzle in test_puzzles:
+            result = solve_with_random(puzzle, max_mistakes=max_mistakes)
+            results.append(result)
+    
     else:
-        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'kmeans', 'csp'")
+        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'kmeans', 'csp', 'random'")
     
     # Aggregate statistics
     total_puzzles = len(results)
