@@ -1,4 +1,4 @@
-# puzzle.py
+# connections_solver/puzzle.py
 
 from __future__ import annotations
 from dataclasses import dataclass

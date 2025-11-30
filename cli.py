@@ -1,4 +1,4 @@
-# cli.py
+# connections_solver/cli.py
 
 from __future__ import annotations
 import argparse
