@@ -3,9 +3,6 @@
 Run the Connections solver on every puzzle JSON in examples/
 and report per-puzzle and aggregate performance.
 
-Usage:
-    python eval_all_puzzles.py --algo hill
-    python eval_all_puzzles.py --algo sa --restarts 100
 """
 
 from __future__ import annotations
