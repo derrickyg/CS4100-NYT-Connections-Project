@@ -1,0 +1,26 @@
+{
+  "words": [
+    "BANK", "RIVER", "STREAM", "CURRENT",
+    "LIGHT", "MATCH", "BAT", "CLUB",
+    "NOTE", "SCALE", "KEY", "CHORD",
+    "PITCH", "FIELD", "GOAL", "POINT"
+  ],
+  "groups": [
+    {
+      "label": "Music Terms",
+      "words": ["NOTE", "SCALE", "KEY", "CHORD"]
+    },
+    {
+      "label": "Sports Terms",
+      "words": ["PITCH", "FIELD", "GOAL", "POINT"]
+    },
+    {
+      "label": "Water / Flow Concepts",
+      "words": ["RIVER", "STREAM", "CURRENT", "BANK"]
+    },
+    {
+      "label": "Things You Swing or Strike",
+      "words": ["LIGHT", "MATCH", "BAT", "CLUB"]
+    }
+  ]
+}

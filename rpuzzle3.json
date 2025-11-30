@@ -1,0 +1,26 @@
+{
+  "words": [
+    "PYTHON", "JAVA", "RUBY", "GO",
+    "STACK", "QUEUE", "LIST", "TREE",
+    "COMPILE", "INTERPRET", "DEBUG", "PROFILE",
+    "GITHUB", "GITLAB", "BITBUCKET", "SOURCEFORGE"
+  ],
+  "groups": [
+    {
+      "label": "Programming Languages",
+      "words": ["PYTHON", "JAVA", "RUBY", "GO"]
+    },
+    {
+      "label": "Data Structures",
+      "words": ["STACK", "QUEUE", "LIST", "TREE"]
+    },
+    {
+      "label": "Development Actions",
+      "words": ["COMPILE", "INTERPRET", "DEBUG", "PROFILE"]
+    },
+    {
+      "label": "Code Hosting Platforms",
+      "words": ["GITHUB", "GITLAB", "BITBUCKET", "SOURCEFORGE"]
+    }
+  ]
+}

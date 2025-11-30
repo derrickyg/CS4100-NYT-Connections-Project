@@ -1,0 +1,26 @@
+{
+  "words": [
+    "DOG", "CAT", "HORSE", "MOUSE",
+    "PIZZA", "BURGER", "PASTA", "SALAD",
+    "RED", "BLUE", "GREEN", "YELLOW",
+    "SOCCER", "BASKETBALL", "TENNIS", "BASEBALL"
+  ],
+  "groups": [
+    {
+      "label": "Animals",
+      "words": ["DOG", "CAT", "HORSE", "MOUSE"]
+    },
+    {
+      "label": "Foods",
+      "words": ["PIZZA", "BURGER", "PASTA", "SALAD"]
+    },
+    {
+      "label": "Colors",
+      "words": ["RED", "BLUE", "GREEN", "YELLOW"]
+    },
+    {
+      "label": "Sports",
+      "words": ["SOCCER", "BASKETBALL", "TENNIS", "BASEBALL"]
+    }
+  ]
+}

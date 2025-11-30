@@ -1,0 +1,26 @@
+{
+  "words": [
+    "GUITAR", "PIANO", "DRUM", "FLUTE",
+    "SECOND", "MINUTE", "HOUR", "DAY",
+    "RAIN", "SNOW", "SUNNY", "CLOUDY",
+    "MERCURY", "VENUS", "EARTH", "MARS"
+  ],
+  "groups": [
+    {
+      "label": "Musical Instruments",
+      "words": ["GUITAR", "PIANO", "DRUM", "FLUTE"]
+    },
+    {
+      "label": "Units of Time",
+      "words": ["SECOND", "MINUTE", "HOUR", "DAY"]
+    },
+    {
+      "label": "Weather Conditions",
+      "words": ["RAIN", "SNOW", "SUNNY", "CLOUDY"]
+    },
+    {
+      "label": "Planets",
+      "words": ["MERCURY", "VENUS", "EARTH", "MARS"]
+    }
+  ]
+}
