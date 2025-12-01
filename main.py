@@ -51,7 +51,7 @@ def solve_with_csp(puzzle: Puzzle, similarity_fn: EmbeddingSimilarity, max_mista
 def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver, 
                       max_mistakes: int = 4) -> Dict:
     """
-    Solve puzzle using K-Means clustering approach.
+    Solve puzzle using adaptive K-Means clustering approach.
     
     Args:
         puzzle: Puzzle to solve
@@ -61,53 +61,19 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
     Returns:
         Dictionary with metrics on the model's performance
     """
-    start_time = time.time()
-    
-    # Get the 16 words from puzzle
-    all_words = []
-    for group_words in puzzle.groups.values():
-        all_words.extend(group_words)
-    
     # game simulator class
     game = GameSimulator(puzzle, max_mistakes=max_mistakes)
     
     print(f"\npuzzle id: {puzzle.puzzle_id}")
     
-    # Get K-Means predicted groups
-    predicted_groups = kmeans_solver.solve_constrained(all_words, n_init=1000)
+    # Use adaptive K-Means that re-clusters based on feedback
+    result = kmeans_solver.solve_with_feedback(game)
     
-    # Submit groups in order (sorted by cohesion)
-    submissions = []
-    for group in predicted_groups:
-        if game.is_game_over:
-            break
-        
-        feedback = game.submit_group(group)
-        submissions.append({
-            "group": group,
-            "feedback": feedback
-        })
-        
-        if feedback.is_correct:
-            print(f"✓ Correct guess: {', '.join(group)}")
-    
-    total_time = time.time() - start_time
-    
-    # Get final state
-    state = game.get_state()
-    num_correct = len(game.get_solved_groups())
+    # Display results
+    num_correct = len(result['solved_groups'])
     print(f"Correct guesses: {num_correct}")
     
-    return {
-        "solved_groups": game.get_solved_groups(),
-        "submissions": submissions,
-        "total_submissions": len(submissions),
-        "mistakes": state["mistakes"],
-        "is_won": state["is_won"],
-        "timing": {
-            "total": total_time
-        }
-    }
+    return result
 
 
 def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4, 
