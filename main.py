@@ -5,6 +5,7 @@ import argparse
 import time
 from typing import List, Dict
 from solvers.k_means_solver import KMeansConnectionsSolver
+from solvers.hierarchical_solver import HierarchicalConnectionsSolver
 from data.load_dataset import load_historical_data, Puzzle
 from similarity.embedding_similarity import EmbeddingSimilarity
 from evaluation.game_simulator import GameSimulator
@@ -76,6 +77,34 @@ def solve_with_kmeans(puzzle: Puzzle, kmeans_solver: KMeansConnectionsSolver,
     return result
 
 
+def solve_with_hierarchical(puzzle: Puzzle, hierarchical_solver: HierarchicalConnectionsSolver, 
+                            max_mistakes: int = 4) -> Dict:
+    """
+    Solve puzzle using adaptive Hierarchical Agglomerative Clustering approach.
+    
+    Args:
+        puzzle: Puzzle to solve
+        hierarchical_solver: Pre-initialized Hierarchical solver
+        max_mistakes: Maximum number of mistakes allowed
+        
+    Returns:
+        Dictionary with metrics on the model's performance
+    """
+    # game simulator class
+    game = GameSimulator(puzzle, max_mistakes=max_mistakes)
+    
+    print(f"\npuzzle id: {puzzle.puzzle_id}")
+    
+    # Use adaptive Hierarchical clustering that re-clusters based on feedback
+    result = hierarchical_solver.solve_with_feedback(game)
+    
+    # Display results
+    num_correct = len(result['solved_groups'])
+    print(f"Correct guesses: {num_correct}")
+    
+    return result
+
+
 def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4, 
                  solver_type: str = "csp"):
     """
@@ -84,7 +113,7 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
     Args:
         test_puzzles: List of puzzles to solve
         max_mistakes: Maximum number of mistakes allowed per puzzle (default: 4)
-        solver_type: Type of solver to use ("kmeans" or "csp")
+        solver_type: Type of solver to use ("kmeans", "csp", or "hierarchical")
     """
     results = []
     
@@ -112,8 +141,21 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
             result = solve_with_csp(puzzle, similarity_fn, max_mistakes=max_mistakes)
             results.append(result)
     
+    elif solver_type == "hierarchical":
+        embeddings_fn = WordEmbeddings(config.EMBEDDING_MODEL)
+        
+        hierarchical_solver = HierarchicalConnectionsSolver(embeddings_fn)
+        
+        print(f"\n{'='*70}")
+        print("USING HIERARCHICAL AGGLOMERATIVE CLUSTERING SOLVER")
+        print(f"{'='*70}\n")
+        
+        for puzzle in test_puzzles:
+            result = solve_with_hierarchical(puzzle, hierarchical_solver, max_mistakes=max_mistakes)
+            results.append(result)
+    
     else:
-        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'kmeans', 'csp'")
+        raise ValueError(f"Unknown solver type: {solver_type}. Choose from: 'kmeans', 'csp', 'hierarchical'")
     
     # Aggregate statistics
     total_puzzles = len(results)
@@ -157,7 +199,7 @@ def main():
         "--solver-type",
         type=str,
         default="csp",
-        help="Type of solver to use: 'kmeans' or 'csp' (default: csp)"
+        help="Type of solver to use: 'kmeans', 'csp', or 'hierarchical' (default: csp)"
     )
     
     args = parser.parse_args()
