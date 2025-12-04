@@ -11,6 +11,7 @@ from evaluation.game_simulator import GameSimulator
 from solvers.csp_solver import CSPSolver
 from features.word_embeddings import WordEmbeddings
 from solvers.random_solver import RandomSolver
+from solvers.hill_climbing_solver import HillClimbingConnectionsSolver
 import config
 
 
@@ -131,6 +132,53 @@ def solve_with_random(puzzle: Puzzle, max_mistakes: int = 4):
     return result
 
 
+def solve_with_hill_climbing(
+    puzzle: Puzzle,
+    hill_solver: HillClimbingConnectionsSolver,
+    max_mistakes: int = 4,
+) -> Dict:
+    """
+    Solve a single puzzle using the hill-climbing solver.
+
+    This mirrors solve_with_kmeans: hill climbing proposes 4 groups offline,
+    and we then submit them to the GameSimulator to see how they perform
+    under the real game rules.
+    """
+    start_time = time.time()
+    game = GameSimulator(puzzle, max_mistakes=max_mistakes)
+
+    # Get 4 groups of 4 words from the solver
+    groups = hill_solver.solve_constrained(puzzle.words)
+
+    submissions = []
+    for group in groups:
+        if game.is_game_over:
+            break
+
+        feedback = game.submit_group(group)
+        submissions.append({
+            "group": group,
+            "feedback": {
+                "is_correct": feedback.is_correct,
+                "correct_words": feedback.correct_words,
+                "group_id": feedback.group_id,
+            },
+        })
+
+    total_time = time.time() - start_time
+
+    return {
+        "puzzle_id": puzzle.puzzle_id,
+        "solved_groups": game.get_solved_groups(),
+        "submissions": submissions,
+        "total_submissions": len(submissions),
+        "mistakes": game.mistakes,
+        "is_won": game.is_won,
+        "timing": {"total": total_time},
+    }
+
+
+
 def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4, 
                  solver_type: str = "csp"):
     """
@@ -174,6 +222,17 @@ def solve_puzzles(test_puzzles: List[Puzzle], max_mistakes: int = 4,
         
         for puzzle in test_puzzles:
             result = solve_with_random(puzzle, max_mistakes=max_mistakes)
+            results.append(result)
+
+    elif solver_type == "hill_climbing":
+        similarity_fn = EmbeddingSimilarity()
+        hill_solver = HillClimbingConnectionsSolver(similarity_fn)
+        print(f"\n{'='*70}")
+        print("USING HILL-CLIMBING SOLVER")
+        print(f"\n{'='*70}")
+        
+        for puzzle in test_puzzles:
+            result = solve_with_hill_climbing(puzzle, hill_solver, max_mistakes)
             results.append(result)
     
     else:
@@ -220,8 +279,9 @@ def main():
     parser.add_argument(
         "--solver-type",
         type=str,
+        choices = ["csp", "kmeans", "hill_climbing"],
         default="csp",
-        help="Type of solver to use: 'kmeans' or 'csp' (default: csp)"
+        help="Type of solver to use: 'kmeans', 'hill_climbing' or 'csp' (default: csp)"
     )
     
     args = parser.parse_args()
